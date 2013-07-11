@@ -155,22 +155,21 @@ class IntCalCalibrator(cscience.components.BaseComponent):
         #for this age value, what I want are:
         #min cal age, max cal age, max error
         
-        dencounter = 0
+        self.dencounter = 0
         
         def density(x):
-            global dencounter
             sigma = np.sqrt(error**2. + (self.sigma_c(age))**2.)
             exponent = -((self.g(x) - np.float64(age))**2.)/(2.*sigma**2)
             alpha = 1./np.sqrt(2.*np.pi*sigma**2);
-            dencounter += 1
+            self.dencounter += 1
             return alpha * np.exp(exponent)
 
         ts = time.time()
         norm,temp = 0,0
         for i in self.partition:
-            dencounter = 0
+            self.dencounter = 0
             (temp,_) = integ.quad(density, self.intervals[i-1], self.intervals[i], limit=200)
-            print 'density run %i times for partition' % dencounter 
+            print 'density run %i times for partition' % self.dencounter 
             norm += temp
         print 'partition integration finished -- density', time.time() - ts
 
@@ -182,9 +181,9 @@ class IntCalCalibrator(cscience.components.BaseComponent):
         ts = time.time()
         mean, temp = 0,0
         for i in self.partition:
-            dencounter = 0
+            self.dencounter = 0
             (temp,_) = integ.quad(weighted_density, self.intervals[i-1], self.intervals[i], limit=200)
-            print 'density run %i times for partition' % dencounter 
+            print 'density run %i times for partition' % self.dencounter 
             mean += temp
         print 'partition integration finished -- weighted density', time.time() - ts
         
@@ -194,10 +193,10 @@ class IntCalCalibrator(cscience.components.BaseComponent):
         ts = time.time()
         variance, temp = 0,0
         for i in self.partition:
-            dencounter = 0
+            self.dencounter = 0
             (temp,_) = integ.quad(weighted2_density, self.intervals[i-1], self.intervals[i], limit=200)
             variance += temp
-            print 'density run %i times for partition' % dencounter 
+            print 'density run %i times for partition' % self.dencounter 
         print 'partition integration finished -- weighted2 density', time.time() - ts
         
         variance = variance - mean**2.
