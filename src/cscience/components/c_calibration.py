@@ -18,13 +18,13 @@ class SimpleIntCalCalibrator(cscience.components.BaseComponent):
     params = {'calibration curve':('14C Age', 'Calibrated Age', 'Error')}
     
     def run_component(self, samples):
-        print "start time", time.time()
+        
         self.curve = datastructures.collection_to_bintree(
                     self.paleobase[self.computation_plan['calibration curve']], 
                     '14C Age')
         
-        for i, sample in enumerate(samples):
-            print "starting sample", i, time.time()
+        for sample in samples:
+            
             age, baseerr = self.convert_age(sample['14C Age'])
             sample['Calibrated 14C Age'] = age
             sample['Calibrated 14C Age Error-'] = baseerr 
@@ -34,9 +34,9 @@ class SimpleIntCalCalibrator(cscience.components.BaseComponent):
                 sample['Calibrated 14C Age Error-'] += (age - minage)
                 maxage = self.convert_age(sample['14C Age'] + sample['14C Age Error'])[0]
                 sample['Calibrated 14C Age Error+'] += (maxage - age)
-            print "finishing sample", i, time.time()
+            
                 
-        print "end time", time.time()
+        
             
     def convert_age(self, age):
         """
@@ -86,6 +86,7 @@ class IntCalCalibrator(cscience.components.BaseComponent):
     params = {'calibration curve':('14C Age', 'Calibrated Age', 'Sigma')}
     
     def run_component(self, samples):
+        print "start time", time.time()
         try:
             self.curve = self.paleobase[self.computation_plan['calibration curve']]
             data = self.curve.values()
@@ -110,7 +111,8 @@ class IntCalCalibrator(cscience.components.BaseComponent):
                 self.intervals.append(int(self.cal_bp[-1]))
             self.partition = range(1,len(self.intervals))
             
-            for sample in samples:
+            for i, sample in enumerate(samples):
+                print "starting sample", i, time.time()
                 (mean, sigma1, sigma2, hdr_68, relative_area_68, 
                  hdr_95, relative_area_95) = self.convert_age(sample['14C Age'], sample['14C Age Error'])
                 sample['Calibrated 14C Age'] = round(mean)
@@ -138,9 +140,12 @@ class IntCalCalibrator(cscience.components.BaseComponent):
                     sample['Calibrated 14C HDR 95%- 3'] = 0
                     sample['Calibrated 14C HDR 95%+ 3'] = 0
                     sample['Relative Area 95% 3'] = 0
+                print "finishing sample", i, time.time()
         except:
             import traceback
             print traceback.format_exc()
+            
+        print "end time", time.time()
             
                 
     def convert_age(self, age, error):
