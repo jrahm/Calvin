@@ -156,33 +156,42 @@ class IntCalCalibrator(cscience.components.BaseComponent):
         #min cal age, max cal age, max error
         
         def density(x):
+            ts = time.time()
             sigma = np.sqrt(error**2. + (self.sigma_c(age))**2.)
             exponent = -((self.g(x) - np.float64(age))**2.)/(2.*sigma**2)
             alpha = 1./np.sqrt(2.*np.pi*sigma**2);
-            return alpha * np.exp(exponent)
+            ret = alpha * np.exp(exponent)
+            print 'density time:', time.time() - ts
+            return ret
 
+        ts = time.time()
         norm,temp = 0,0
         for i in self.partition:
             (temp,_) = integ.quad(density, self.intervals[i-1], self.intervals[i], limit=200)
             norm += temp
+        print 'partition integration finished -- density', time.time() - ts
 
         def norm_density(x):
             return density(x)/norm
         def weighted_density(x):
             return x * norm_density(x)
         
+        ts = time.time()
         mean, temp = 0,0
         for i in self.partition:
             (temp,_) = integ.quad(weighted_density, self.intervals[i-1], self.intervals[i], limit=200)
             mean += temp
+        print 'partition integration finished -- weighted density', time.time() - ts
         
         def weighted2_density(x):
             return x**2. * norm_density(x)
             
+        ts = time.time()
         variance, temp = 0,0
         for i in self.partition:
             (temp,_) = integ.quad(weighted2_density, self.intervals[i-1], self.intervals[i], limit=200)
             variance += temp
+        print 'partition integration finished -- weighted2 density', time.time() - ts
         
         variance = variance - mean**2.
         sigma1 = np.sqrt(variance)
@@ -198,6 +207,7 @@ class IntCalCalibrator(cscience.components.BaseComponent):
         
         #Determine index of 68% confidence and create list of pairs
         #sorted by bp date.
+        ts = time.time()
         alpha = 0
         m = len(theta)/2
         while((alpha < 0.675) or (alpha > 0.695)):
@@ -211,9 +221,11 @@ class IntCalCalibrator(cscience.components.BaseComponent):
         m = len(theta)-1 - m
         upsilon = theta[m:]
         upsilon.sort(key=operator.itemgetter(0))
+        print '68% confidence index calc:', time.time() - ts
         
         #Determine index of 95% confidence and create list of pairs
         #sorted by bp date.
+        ts = time.time()
         alpha = 0
         m = len(theta)/2
         while((alpha < 0.945) or (alpha > 0.965)):
@@ -227,10 +239,12 @@ class IntCalCalibrator(cscience.components.BaseComponent):
         m = len(theta)-1 - m
         phi = theta[m:]
         phi.sort(key=operator.itemgetter(0))
+        print "95% confidence index calc:", time.time() - ts
         
         #Determine interval of 68% confidence as list of bp dates
         #which should only be two dates and relative area which
         #should be 0.68
+        ts = time.time()
         hdr_68 = [upsilon[0][0]]
         relative_area_68 = []
         temp = 0
@@ -243,10 +257,12 @@ class IntCalCalibrator(cscience.components.BaseComponent):
                 temp = 0
         hdr_68.append(upsilon[-1][0])
         relative_area_68.append(temp)
+        print '68% conf interval calc:', time.time() - ts
         
         #Determine interval(s) of 95% confidence as list of bp dates
         #which may be more than one interval and relative areas of
         #those intervals which should add up to 0.95
+        ts = time.time()
         hdr_95 = [phi[0][0]]
         relative_area_95 = []
         temp = 0
@@ -259,6 +275,7 @@ class IntCalCalibrator(cscience.components.BaseComponent):
                 temp = 0
         hdr_95.append(phi[-1][0])
         relative_area_95.append(temp)
+        prnt '95% conf interval calc:', time.time() - ts
         return (mean, sigma1, sigma2, hdr_68, relative_area_68,hdr_95, relative_area_95)
     
     
