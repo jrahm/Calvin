@@ -158,6 +158,7 @@ class IntCalCalibrator(cscience.components.BaseComponent):
         dencounter = 0
         
         def density(x):
+            global dencounter
             sigma = np.sqrt(error**2. + (self.sigma_c(age))**2.)
             exponent = -((self.g(x) - np.float64(age))**2.)/(2.*sigma**2)
             alpha = 1./np.sqrt(2.*np.pi*sigma**2);
