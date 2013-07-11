@@ -155,19 +155,21 @@ class IntCalCalibrator(cscience.components.BaseComponent):
         #for this age value, what I want are:
         #min cal age, max cal age, max error
         
+        dencounter = 0
+        
         def density(x):
-            ts = time.time()
             sigma = np.sqrt(error**2. + (self.sigma_c(age))**2.)
             exponent = -((self.g(x) - np.float64(age))**2.)/(2.*sigma**2)
             alpha = 1./np.sqrt(2.*np.pi*sigma**2);
-            ret = alpha * np.exp(exponent)
-            print 'density time:', time.time() - ts
-            return ret
+            dencounter += 1
+            return alpha * np.exp(exponent)
 
         ts = time.time()
         norm,temp = 0,0
         for i in self.partition:
+            dencounter = 0
             (temp,_) = integ.quad(density, self.intervals[i-1], self.intervals[i], limit=200)
+            print 'density run %i times for partition' % dencounter 
             norm += temp
         print 'partition integration finished -- density', time.time() - ts
 
@@ -179,7 +181,9 @@ class IntCalCalibrator(cscience.components.BaseComponent):
         ts = time.time()
         mean, temp = 0,0
         for i in self.partition:
+            dencounter = 0
             (temp,_) = integ.quad(weighted_density, self.intervals[i-1], self.intervals[i], limit=200)
+            print 'density run %i times for partition' % dencounter 
             mean += temp
         print 'partition integration finished -- weighted density', time.time() - ts
         
@@ -189,8 +193,10 @@ class IntCalCalibrator(cscience.components.BaseComponent):
         ts = time.time()
         variance, temp = 0,0
         for i in self.partition:
+            dencounter = 0
             (temp,_) = integ.quad(weighted2_density, self.intervals[i-1], self.intervals[i], limit=200)
             variance += temp
+            print 'density run %i times for partition' % dencounter 
         print 'partition integration finished -- weighted2 density', time.time() - ts
         
         variance = variance - mean**2.
@@ -275,7 +281,7 @@ class IntCalCalibrator(cscience.components.BaseComponent):
                 temp = 0
         hdr_95.append(phi[-1][0])
         relative_area_95.append(temp)
-        prnt '95% conf interval calc:', time.time() - ts
+        print '95% conf interval calc:', time.time() - ts
         return (mean, sigma1, sigma2, hdr_68, relative_area_68,hdr_95, relative_area_95)
     
     
