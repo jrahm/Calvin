@@ -8,8 +8,8 @@ import scipy.interpolate as interp
 import scipy.integrate as integ
 import operator
 
-#TODO: it appears that the "correct" way of doing this is to run a probabilistic
-#model over the calibration set to get the best possible result
+import time
+
 class SimpleIntCalCalibrator(cscience.components.BaseComponent):
     visible_name = 'Simple Carbon 14 Calibration (IntCal)'
     inputs = {'required':('14C Age',), 'optional':('14C Age Error',)}
@@ -18,11 +18,13 @@ class SimpleIntCalCalibrator(cscience.components.BaseComponent):
     params = {'calibration curve':('14C Age', 'Calibrated Age', 'Error')}
     
     def run_component(self, samples):
+        print "start time", time.time()
         self.curve = datastructures.collection_to_bintree(
                     self.paleobase[self.computation_plan['calibration curve']], 
                     '14C Age')
         
-        for sample in samples:
+        for i, sample in enumerate(samples):
+            print "starting sample", i, time.time()
             age, baseerr = self.convert_age(sample['14C Age'])
             sample['Calibrated 14C Age'] = age
             sample['Calibrated 14C Age Error-'] = baseerr 
@@ -32,6 +34,9 @@ class SimpleIntCalCalibrator(cscience.components.BaseComponent):
                 sample['Calibrated 14C Age Error-'] += (age - minage)
                 maxage = self.convert_age(sample['14C Age'] + sample['14C Age Error'])[0]
                 sample['Calibrated 14C Age Error+'] += (maxage - age)
+            print "finishing sample", i, time.time()
+                
+        print "end time", time.time()
             
     def convert_age(self, age):
         """
