@@ -112,6 +112,7 @@ class IntCalCalibrator(cscience.components.BaseComponent):
             for sample in samples:
                 (hdr_68, relative_area_68, 
                  hdr_95, relative_area_95) = self.convert_age(sample['14C Age'], sample['14C Age Error'])
+                sample['Calibrated 14C Age'] = UncertainQuantity(someNumber?, 'years', distribution)
                 sample['Calibrated 14C HDR 68%-'] = hdr_68[0]
                 sample['Calibrated 14C HDR 68%+'] = hdr_68[1]
                 sample['Relative Area 68%'] = relative_area_68
@@ -129,31 +130,41 @@ class IntCalCalibrator(cscience.components.BaseComponent):
             exponent = -((self.g(x) - avg)**2.)/(2.*sig2)
             alpha = 1./math.sqrt(2.*np.pi*sig2);
             return alpha * math.exp(exponent)
+    
+    # inputs: same as density above plus norm, output: normed density
+    def norm_density(avg, error, norm, x,s):
+            return self.density(avg, error, x, s)/norm
 
                       
-    def convert_age(self, age, error):
+    def convert_age(self, age):
         """
         returns a "base" calibrated age interval 
         """
+        
+        error = age.uncertainty.magnitude[0]
 
         y = np.zeros(len(self.x))
         for index, z in enumerate(self.x):
             y[index] = self.density(age, error, z, self.sigma_c(z))
 
         norm = integ.simps(y, self.x)
+        
+        mean = integ.simps(np.multiply(self.x, norm *y), self.x)
 
-        def norm_density(x,s):
-            return self.density(age, error, x, s)/norm
-
+        return 
+    
+    def hdr(self, age, norm):
+        
+        error = age.uncertainty.magnitude[0]
         alpha = 0
         center = self.ig(age)
         year_before = center - 1
         year_after = center + 1
-        theta = [(norm_density(center, self.sigma_c(center)), center)]
+        theta = [(norm_density(age, error, norm, center, self.sigma_c(center)), center)]
         alpha += theta[0][0]
         while alpha < 0.96:
-            before = (norm_density(year_before, self.sigma_c(year_before)), year_before)
-            after = (norm_density(year_after, self.sigma_c(year_after)), year_after)
+            before = (norm_density(age, error, norm, year_before, self.sigma_c(year_before)), year_before)
+            after = (norm_density(age, error, norm, year_after, self.sigma_c(year_after)), year_after)
             alpha += before[0] + after[0]
             heapq.heappush(theta, before)
             heapq.heappush(theta, after)
