@@ -204,17 +204,20 @@ class PlotCanvas(wxagg.FigureCanvasWxAgg):
         #TODO: how to keep error bar & interpolation line out of the legend?
         last_plot = None
         for vatt, plot in iter_plots:
-#             print("vatt: %s, plot: %s"%(vatt, plot))
+            print("vatt: %s, plot: %s"%(vatt, plot))
             self.samples.sort(key=lambda s: (s['computation plan'], s[options.invaratt]))
+
             if plot is not last_plot:
                 plans = []
                 colors = itertools.cycle(self.colorseries)
                 shapes = itertools.cycle(self.shapeseries)
+
             for cplan, sampleset in itertools.groupby(self.samples, key=lambda s: s['computation plan']):
                 plans.append(cplan)
                 color = colors.next()
                 shape = shapes.next()
                 args = self.extract_graph_series(sampleset, options, vatt)
+
                 if options.invaraxis == 'y':
                     x = args['var']
                     xerr = args['varerr']
@@ -229,14 +232,17 @@ class PlotCanvas(wxagg.FigureCanvasWxAgg):
                     yerr = args['varerr']
                     xlab = '%s (%s)'%(options.invaratt, args['invar_units'])
                     ylab = '%s (%s)'%(vatt, args['var_units'])
+
+                print("x=%s,y=%s"%(x,y))
                 lab = '%s_%s'%(cplan, vatt)
                 self.picked_indices[cplan] = []
+
                 if options.interpolation is PlotOptions.INTERP_LINEAR:
                     plot.plot(x, y, ''.join((color,shape)), label=lab, 
                           picker=5, linestyle='-')
                 elif options.interpolation is PlotOptions.INTERP_CUBIC:
-                    plot.plot(x, y, ''.join((color,shape)), label=lab, 
-                          picker=5)
+                    # plot.plot(x, y, ''.join((color,shape)), label=lab, 
+                    #       picker=5)
                     if len(x) > 2:
                         #can't do a cubic interpolation on <3 points!
                         plans.append('(Interpolation)')

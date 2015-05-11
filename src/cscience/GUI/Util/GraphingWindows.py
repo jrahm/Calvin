@@ -62,6 +62,7 @@ class PlotWindow(wx.Frame):
     interp_element_names = ('no_interp', 'linear_interp', 'cubic_interp')
     
     def __init__(self, parent, samples):
+        print ("Samples: " + str(samples))
         start_position = parent.GetPosition()
         start_position.x += 50
         start_position.y += 100
