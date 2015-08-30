@@ -73,8 +73,8 @@ class PlotWindow(wx.Frame):
         '''
         fill this in with useful stuff at some point
         '''
-        print event.att1
-        print event.att2
+        print (event.att1)
+        print (event.att2)
 
     def on_close(self, event):
         event.Skip()
@@ -307,8 +307,12 @@ class StylePane(wx.Dialog):
         sizer.Add(wx.StaticText(self, wx.ID_ANY, "Style"), (0, 2))
         sizer.Add(wx.StaticText(self, wx.ID_ANY, "Interpolation"), (0, 3))
 
-        optset = curoptions.items()
+        optset = curoptions.items()[:]
         optset.sort()
+
+        # display just a single button. This button, when clicked will
+        # do a couple of things, It will create a new PaneRow at the 
+        # current position and move itself to the cell below
         for row, (name, opts) in enumerate(optset, 1):
             self.vars[name] = StylePane.PaneRow(self, sizer, row, name, opts)
 
