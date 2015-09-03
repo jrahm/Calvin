@@ -296,6 +296,30 @@ class StylePane(wx.Dialog):
                         interpolation_strategy=self.interpchoice.GetStringSelection(),
                         computation_plans=cplans)
 
+    class OptionListBox(wx.Panel):
+        def __init__(self):
+            self.sizer = wx.GridBagSizer(2, 2)
+            self.SetSizer(self.sizer)
+            
+            self.sizer.Add(wx.StaticText(self, wx.ID_ANY, "Enabled"), (0, 0), flag=wx.RIGHT, border=10)
+            self.sizer.Add(wx.StaticText(self, wx.ID_ANY, "Color"), (0, 1))
+            self.sizer.Add(wx.StaticText(self, wx.ID_ANY, "Style"), (0, 2))
+            self.sizer.Add(wx.StaticText(self, wx.ID_ANY, "Interpolation"), (0, 3))
+
+            self.row_index = 1
+            pass
+
+        def addPlotOption(self, name):
+            StylePane.PaneRow(self, self.sizer, self.row_index, name, optons)
+
+        def removePlotOption(self):
+            
+            pass
+
+        def get_option_set(self):
+            
+            pass
+
     def __init__(self, parent, curoptions):
         super(StylePane, self).__init__(parent, wx.ID_ANY)
 
