@@ -10,6 +10,9 @@ from calvin.PlotInterface import  run_with_annotations as RWA
 
 import backend, options, plotting, events
 
+ID_ADD_VARIABLE = wx.ID_HIGHEST
+
+
 def get_distribution(original_point):
     dist = original_point.uncertainty.distribution
     if hasattr(dist, "x"):
@@ -296,25 +299,50 @@ class StylePane(wx.Dialog):
                         interpolation_strategy=self.interpchoice.GetStringSelection(),
                         computation_plans=cplans)
 
+    def add_new_variable(self, _evt):
+        self.add_button.Hide()
+        self.sizer.Remove(self.add_button)
+
+        self.PaneRow(self, self.sizer, self.row_ptr, "that", self.optset[0][1])
+
+        self.row_ptr += 1
+        self.add_button = wx.Button(self, ID_ADD_VARIABLE, "+");
+        self.sizer.Add(self.add_button, (self.row_ptr, 0), (1, 4))
+
+        self.Layout()
+        self.Fit()
+        self.Update()
+        self.Refresh()
+
+    def move_button(self):
+
+        pass
+
     def __init__(self, parent, curoptions):
+
         super(StylePane, self).__init__(parent, wx.ID_ANY)
 
         self.vars = {}
 
-        sizer = wx.GridBagSizer(2, 2)
-        sizer.Add(wx.StaticText(self, wx.ID_ANY, "Enabled"), (0, 0), flag=wx.RIGHT, border=10)
-        sizer.Add(wx.StaticText(self, wx.ID_ANY, "Color"), (0, 1))
-        sizer.Add(wx.StaticText(self, wx.ID_ANY, "Style"), (0, 2))
-        sizer.Add(wx.StaticText(self, wx.ID_ANY, "Interpolation"), (0, 3))
+        self.optset = curoptions.items()[:] # obscure copy ... why is there no copy()?
+        self.optset.sort()
+        self.row_ptr = 2
 
         optset = curoptions.items()[:]
         optset.sort()
+        global_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.sizer = wx.GridBagSizer(2, 2)
+        self.sizer.Add(wx.StaticText(self, wx.ID_ANY, "Enabled"), (0, 0), flag=wx.RIGHT, border=10)
+        self.sizer.Add(wx.StaticText(self, wx.ID_ANY, "Color"), (0, 1))
+        self.sizer.Add(wx.StaticText(self, wx.ID_ANY, "Style"), (0, 2))
+        self.sizer.Add(wx.StaticText(self, wx.ID_ANY, "Interpolation"), (0, 3))
 
         # display just a single button. This button, when clicked will
         # do a couple of things, It will create a new PaneRow at the 
-        # current position and move itself to the cell below
-        for row, (name, opts) in enumerate(optset, 1):
-            self.vars[name] = StylePane.PaneRow(self, sizer, row, name, opts)
+        self.add_button = wx.Button(self, ID_ADD_VARIABLE, "+")
+        self.Bind(wx.EVT_BUTTON, self.add_new_variable, self.add_button)
+        self.sizer.Add(self.add_button, (1, 0), (1, 4));
 
         okbtn = wx.Button(self, wx.ID_OK)
         okbtn.SetDefault()
@@ -325,9 +353,11 @@ class StylePane(wx.Dialog):
         bsizer.AddButton(cancelbtn)
         bsizer.Realize()
 
-        sizer.AddGrowableCol(1)
-        sizer.Add(bsizer, (row+1, 0), (1, 4))
-        self.SetSizerAndFit(sizer)
+        self.sizer.AddGrowableCol(1)
+
+        global_sizer.Add(self.sizer)
+        global_sizer.Add(bsizer)
+        self.SetSizerAndFit(global_sizer)
 
     def get_option_set(self):
         return options.PlotOptionSet([(name, pane.get_option()) for
