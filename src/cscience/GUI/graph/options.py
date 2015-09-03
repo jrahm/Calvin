@@ -10,6 +10,14 @@ class LinearInterpolationStrategy(object):
     def interpolate(x, y):
         return (x, y)
 
+class RegressionLineStrategy(object):
+    def interpolate(x, y):
+        slope = 1 # get the slope of the regression line
+        y_intcpt = 1 # get the y_intercept of the line
+
+        return ([i for i in x], [y_intcpt + slope * i for i in x])
+        
+
 class SciInterpolationStrategy(object):
     def __init__(self, kind):
         self.kind = kind
@@ -84,7 +92,8 @@ class PlotOptions(object):
     Options for a single x/y plot. Not the case for the
     more global options about plotting.
     """
-    interpolations = {"Linear": LinearInterpolationStrategy(),
+    interpolations = {"Piecewise-Linear": LinearInterpolationStrategy(),
+                      u"R\xb2 Regression Line": RegressionLineStrategy(),
                       "Cubic": SciInterpolationStrategy('cubic'),
                       "Quadratic": SciInterpolationStrategy('quadratic'),
                       "B-Spline": SplineInterpolationStrategy(),
