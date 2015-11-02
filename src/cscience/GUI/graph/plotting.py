@@ -32,7 +32,7 @@ class PlotCanvas(wx.Panel):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.delegate, 1, wx.EXPAND)
 
-        self.plot = self.delegate.figure.add_axes([0.1,0.1,0.8,0.8])
+        self.plot = self.delegate.figure.add_subplot(1, 1, 1)
         self.pointsets = []
         self._canvas_options = options.PlotCanvasOptions()
 
@@ -111,11 +111,10 @@ class PlotCanvas(wx.Panel):
             iattrs.add(points.independent_var_name)
             dattrs.add(points.variable_name)
 
-        if self.canvas_options.large_font:
-            font = {'size' : 15}
-        else:
-            font = {'size' : 12}
-        matplotlib.rc('font', **font)
+        wxfont = self.canvas_options.font
+        if wxfont:
+            matplotlib.rc('font', size=wxfont.GetPointSize())
+            matplotlib.rc('fontname', family=wxfont.GetFamily())
 
         if self.canvas_options.show_axes_labels:
             self.plot.set_xlabel(",".join([i or "<NONE>" for i in iattrs]))

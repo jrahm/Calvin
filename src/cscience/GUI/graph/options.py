@@ -56,6 +56,7 @@ class PlotCanvasOptions(object):
         self.show_error_bars = kwargs.get('show_error_bars', False)
         self.large_font = kwargs.get('large_font', False)
         self.flip_axis = kwargs.get('flip_axis', False)
+        self.font = None
         self._legend = None
 
     def modify_pointset(self, wx_event_handler, pointset) :

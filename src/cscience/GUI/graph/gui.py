@@ -178,8 +178,9 @@ class OptionsPane(wx.Dialog):
         super(OptionsPane, self).__init__(parent)
 
         self.elements = {}
-        sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY), wx.VERTICAL)
+        sizer = wx.GridBagSizer()
 
+        i = 0
         for label, key in [("Show Axes Labels", 'show_axes_labels'),
                            ("Show Legend", 'legend'),
                            ("Show Grid", 'show_grid'),
@@ -188,10 +189,16 @@ class OptionsPane(wx.Dialog):
                            ("Flip Axis",  'flip_axis'),
                            ("Show Error Bars", 'show_error_bars'),
                            ("Large Font", 'large_font')]:
-            cb = wx.CheckBox(self, wx.ID_ANY, label=label)
+            sizer.Add(wx.StaticText(self, wx.ID_ANY, label), (i, 0))
+            cb = wx.CheckBox(self, wx.ID_ANY)
             cb.SetValue(getattr(curoptions, key))
             self.elements[key] = cb
-            sizer.Add(cb, wx.EXPAND)
+            sizer.Add(cb, (i, 1))
+            i += 1
+
+        self.font_dialog = wx.FontPickerCtrl(self)
+        sizer.Add(wx.StaticText(self, wx.ID_ANY, "Font: "), (i, 0))
+        sizer.Add(self.font_dialog, (i, 1))
 
         okbtn = wx.Button(self, wx.ID_OK)
         okbtn.SetDefault()
@@ -201,13 +208,16 @@ class OptionsPane(wx.Dialog):
         bsizer.Add(okbtn, flag=wx.ALL, border=5)
         bsizer.Add(cancelbtn, flag=wx.ALL, border=5)
         bsizer.Realize()
-        sizer.Add(bsizer, border=5)
+        sizer.Add(bsizer, (i+1, 0), (1, 2), border=5)
 
         self.SetSizerAndFit(sizer)
 
     def get_canvas_options(self):
-        return options.PlotCanvasOptions(**dict([(key, cb.IsChecked())
+        opts = options.PlotCanvasOptions(**dict([(key, cb.IsChecked())
                     for key, cb in self.elements.items()]))
+        opts.font = self.font_dialog.GetSelectedFont()
+        return opts
+
 
 
 class ShapeCombo(wx.combo.OwnerDrawnComboBox):
@@ -512,25 +522,12 @@ class InfoPanel(ScrolledPanel):
         self.SetupScrolling(scroll_x=False)
 
     def make_distributions(self):
-
-        gsizer = wx.BoxSizer(wx.VERTICAL)
-        gsizer.Add(wx.StaticText(self, wx.ID_ANY, "Dependent Variable Distribution"))
-        box = wx.Panel(self, wx.ID_ANY)
-        self.zoom_canv_dep = plotting.PlotCanvas(box, (3,3))
-        boxs = wx.BoxSizer(wx.VERTICAL)
-        boxs.Add(self.zoom_canv_dep, 1, wx.EXPAND)
-        box.SetSizerAndFit(boxs)
-        gsizer.Add(box, 1, wx.EXPAND)
-
-        gsizer.Add(wx.StaticText(self, wx.ID_ANY, "Independent Variable Distribution"))
-        box = wx.Panel(self, wx.ID_ANY)
-        self.zoom_canv_ind = plotting.PlotCanvas(box, (3,3))
-        boxs = wx.BoxSizer(wx.VERTICAL)
-        boxs.Add(self.zoom_canv_ind, 1, wx.EXPAND)
-        box.SetSizerAndFit(boxs)
-        gsizer.Add(box, 1, wx.EXPAND)
-
-        return gsizer
+        splitter = wx.SplitterWindow(self)
+        self.zoom_canv_dep = plotting.PlotCanvas(splitter, (3,3))
+        self.zoom_canv_ind = plotting.PlotCanvas(splitter, (3,3))
+        splitter.SetSashGravity(0.5)
+        splitter.SplitHorizontally(self.zoom_canv_ind, self.zoom_canv_dep)
+        return splitter
 
 
     def make_linreg_box(self):
